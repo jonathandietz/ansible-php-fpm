@@ -25,7 +25,10 @@
   args:
     creates: /etc/php5/cli/conf.d/20-mcrypt.ini
 
-- name: Copy php-fpm configuration
+- name: Copy php-fpm php.ini configuration
+  template: src=php.ini dest=/etc/php5/fpm/
+
+- name: Copy php-fpm pool config configuration
   template: src=wordpress.conf dest=/etc/php5/fpm/pool.d/
   notify:
     - restart nginx
