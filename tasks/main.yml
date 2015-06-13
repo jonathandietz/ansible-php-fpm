@@ -1,0 +1,32 @@
+---
+- name: Install php-fpm and deps
+  apt: name={{ item }} state=present
+  with_items:
+    - php5
+    - php5-fpm
+    - php5-enchant
+    - php5-mysql
+    - php5-mcrypt
+    - php5-cli
+
+- name: Ensure that the necessary directory exists
+  file:
+    path: "/var/run/php-fpm"
+    state: directory
+    mode: 0777
+- name: Disable default pool
+  command: mv /etc/php5/fpm/pool.d/www.conf /etc/php5/fpm/pool.d/www.disabled creates=/etc/php5/fpm/pool.d/www.disabled
+
+- name: ensure php5-fpm cgi.fix_pathinfo=0
+  lineinfile: dest=/etc/php5/fpm/php.ini regexp='^(.*)cgi.fix_pathinfo=' line=cgi.fix_pathinfo=0
+
+- name: Enable php5 mcrypt module
+  shell: php5enmod mcrypt
+  args:
+    creates: /etc/php5/cli/conf.d/20-mcrypt.ini
+
+- name: Copy php-fpm configuration
+  template: src=wordpress.conf dest=/etc/php5/fpm/pool.d/
+  notify:
+    - restart nginx
+    - restart varnish
